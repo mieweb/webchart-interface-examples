@@ -9,8 +9,9 @@ import csv
 import time
 from io import StringIO
 from xml.dom import minidom
+import magic
 
-EXTENSIONS = ['.xml']
+EXTENSIONS = ['.xml', '.pdf']
 COOKIE = None
 STORAGE_TYPE = 19
 DOC_TYPE = 'WCCDA'
@@ -20,13 +21,13 @@ LOGFILE = 'import.log'
 def usage():
     print('Usage: {0} WebChartUrl docpath mrcsvfile wcuser'.format(sys.argv[0]))
 
-def getResponse(url, data={}):
+def getResponse(url, data={}, filedata={}):
     if data and COOKIE:
         data['session_id'] = COOKIE
     try:
         old = sys.stderr
         sys.stderr = open(os.devnull, 'w')
-        res = requests.post(url, data=data, verify=False)
+        res = requests.post(url, data=data, files=filedata, verify=False)
     except Exception as e:
         d = data.copy()
         if 'login_passwd' in d:
@@ -114,18 +115,24 @@ if __name__ == '__main__':
             skipped += 1
             continue
         print('Importing file [ {0} / {1} ]  {2} => {3}'.format(idx, len(files), f, mrnumber))
-        out, res = getResponse(url, {
-            'f': 'chart',
-            's': 'upload',
-            'autofroo': '1',
-            'register_patient' : '1',
-            'storage_type': STORAGE_TYPE,
-            'doc_type': DOC_TYPE,
-            'file': open(os.path.join(path, f), 'r').read(),
-            'subject': 'Sample document subject',
+        fpath = os.path.join(path, f)
+        with open(fpath, 'rb') as fp:
+            out, res = getResponse(url, {
+                'f': 'chart',
+                's': 'upload',
+                'autofroo': '1',
+                'register_patient' : '1',
+                # 'storage_type': STORAGE_TYPE,
+                'storage_type': data[f]['storage_type'],
+                # 'doc_type': DOC_TYPE,
+                'doc_type': data[f]['doc_type'],
+                # 'file': open(os.path.join(path, f), 'r').read(),
+                'subject': 'Sample document subject',
 #            'pat_id': 18,
-            'mrnumber': mrnumber
-        })
+                'mrnumber': mrnumber
+            }, {
+                'file': (fpath, fp, magic.from_file(fpath, mime=True)),
+            })
         try:
             dom = minidom.parse(StringIO(out))
             error = str(dom.getElementsByTagName('ErrorCode')[0].firstChild.nodeValue)

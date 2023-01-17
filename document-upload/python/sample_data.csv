@@ -1,2 +1,3 @@
-document_name,patient_id
-ccr.xml,10019
+document_name,patient_id,doc_type,storage_type
+ccr.xml,10019,WCCDA,19
+example.pdf,10019,WCPHOTO,17
