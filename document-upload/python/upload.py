@@ -7,7 +7,7 @@ import requests
 import getpass
 import csv
 import time
-from StringIO import StringIO
+from io import StringIO
 from xml.dom import minidom
 
 EXTENSIONS = ['.xml']
@@ -69,7 +69,7 @@ def unlinkLogFile():
 def loadCSV(path, key):
     """ Load the entire csv file into a single dict using the given key """
     data = {}
-    reader = csv.DictReader(open(path, 'rb'))
+    reader = csv.DictReader(open(path, 'r'))
     for row in reader:
         data[row[key]] = row
     return data
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     completed = 0
     for idx, f in enumerate(files, start=1):
         try:
-            mrnumber = 'MR-{0}'.format(getmrnumber(data, f, 'patient_id'))
+            mrnumber = 'MIE-{0}'.format(getmrnumber(data, f, 'patient_id'))
         except KeyError as e:
             log('Skipped {0} => No patient_id found in csv file'.format(f), True)
             skipped += 1
@@ -117,11 +117,12 @@ if __name__ == '__main__':
         out, res = getResponse(url, {
             'f': 'chart',
             's': 'upload',
-			'autofroo': '1',
-			'register_patient' : '1'
+            'autofroo': '1',
+            'register_patient' : '1',
             'storage_type': STORAGE_TYPE,
-#            'doc_type': DOC_TYPE,
-            'file': open(os.path.join(path, f), 'rb').read(),
+            'doc_type': DOC_TYPE,
+            'file': open(os.path.join(path, f), 'r').read(),
+            'subject': 'Sample document subject',
 #            'pat_id': 18,
             'mrnumber': mrnumber
         })
