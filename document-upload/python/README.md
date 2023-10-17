@@ -2,6 +2,8 @@
 
 The document upload example code requires Python 3.6.8+ to run.
 
+Given a CSV file with the names of documents to upload, this program will parse each row, read in the file from disk, and upload the document to the chart specified by the patient_id column in the CSV.
+
 # Setup
 
 ```
