@@ -21,7 +21,7 @@ LOGFILE = 'import.log'
 def usage():
     print('Usage: {0} WebChartUrl docpath mrcsvfile wcuser'.format(sys.argv[0]))
 
-def getResponse(url, data={}, filedata={}):
+def postResponse(url, data={}, filedata={}):
     if data and COOKIE:
         data['session_id'] = COOKIE
     try:
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     data = loadCSV(mrcsvfile, 'document_name')
     wcpass = getpass.getpass('Please enter the webchart password for user [ {0} ]: => '.format(wcuser))
     try:
-        out, res = getResponse(url, {'login_user': wcuser, 'login_passwd': wcpass})
+        out, res = postResponse(url, {'login_user': wcuser, 'login_passwd': wcpass})
         COOKIE = res.headers.get('Set-Cookie').split('=')[1].split(';')[0]
     except Exception as e:
         print('Failed to get the webchart cookie', e)
@@ -117,7 +117,7 @@ if __name__ == '__main__':
         print('Importing file [ {0} / {1} ]  {2} => {3}'.format(idx, len(files), f, mrnumber))
         fpath = os.path.join(path, f)
         with open(fpath, 'rb') as fp:
-            out, res = getResponse(url, {
+            out, res = postResponse(url, {
                 'f': 'chart',
                 's': 'upload',
                 'autofroo': '1',
